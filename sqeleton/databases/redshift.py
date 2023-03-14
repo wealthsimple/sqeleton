@@ -1,3 +1,4 @@
+import logging
 from typing import List, Dict
 from ..abcs.database_types import Float, TemporalType, FractionalType, DbPath
 from ..abcs.mixins import AbstractMixin_MD5
@@ -105,11 +106,50 @@ class Redshift(PostgreSQL):
         assert len(d) == len(rows)
         return d
 
+    def select_view_columns(self, path: DbPath) -> str:
+        _, schema, table = self._normalize_table_path(path)
+
+        return (
+            """select * from pg_get_cols('{}.{}')
+                cols(view_schema name, view_name name, col_name name, col_type varchar, col_num int)
+            """.format(schema, table)
+        )
+
+    def query_pg_get_cols(self, path: DbPath) -> Dict[str, tuple]:
+        logging.info('query_pg_get_cols')
+        print('     (query_pg_get_cols)')
+        rows = self.query(self.select_view_columns(path), list)
+
+        if not rows:
+            raise RuntimeError(f"{self.name}: View '{'.'.join(path)}' does not exist, or has no columns")
+
+        output = {}
+        for r in rows:
+            col_name = r[2]
+            type_info = r[3].split('(')
+            base_type = type_info[0]
+            precision = None
+            scale = None
+
+            if len(type_info) > 1:
+                if base_type == 'numeric':
+                    precision, scale = type_info[1][:-1].split(',')
+                    precision = int(precision)
+                    scale = int(scale)
+                
+            out = [col_name, base_type, None, precision, scale]
+            output[col_name] = tuple(out)
+
+        return output
+
     def query_table_schema(self, path: DbPath) -> Dict[str, tuple]:
         try:
             return super().query_table_schema(path)
         except RuntimeError:
-            return self.query_external_table_schema(path)
+            try:
+                return self.query_external_table_schema(path)
+            except RuntimeError:
+                return self.query_pg_get_cols(path) 
 
     def _normalize_table_path(self, path: DbPath) -> DbPath:
         if len(path) == 1:
