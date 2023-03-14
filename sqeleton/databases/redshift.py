@@ -62,6 +62,7 @@ class Redshift(PostgreSQL):
     dialect = Dialect()
     CONNECT_URI_HELP = "redshift://<user>:<password>@<host>/<database>"
     CONNECT_URI_PARAMS = ["database?"]
+    SUPPORTS_UNIQUE_CONSTAINT = False # seems required otherwise JOINDIFF errors out
 
     def select_table_schema(self, path: DbPath) -> str:
         database, schema, table = self._normalize_table_path(path)
