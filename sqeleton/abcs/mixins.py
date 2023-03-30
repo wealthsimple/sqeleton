@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .database_types import TemporalType, FractionalType, ColType_UUID, Boolean, ColType, String_UUID
+from .database_types import StringType, TemporalType, FractionalType, ColType_UUID, Boolean, ColType, String_UUID
 from .compiler import Compilable
 
 
@@ -49,6 +49,10 @@ class AbstractMixin_NormalizeValue(AbstractMixin):
             return f"TRIM({value})"
         return self.to_string(value)
 
+    def normalize_string(self, value: str, coltype: StringType) -> str:
+        """Creates an SQL expression, that strips uuids of artifacts like whitespace."""
+        return self.to_string(value)
+
     def normalize_value_by_type(self, value: str, coltype: ColType) -> str:
         """Creates an SQL expression, that converts 'value' to a normalized representation.
 
@@ -73,6 +77,8 @@ class AbstractMixin_NormalizeValue(AbstractMixin):
             return self.normalize_uuid(value, coltype)
         elif isinstance(coltype, Boolean):
             return self.normalize_boolean(value, coltype)
+        elif isinstance(coltype, StringType):
+            return self.normalize_string(value, coltype)
         return self.to_string(value)
 
 

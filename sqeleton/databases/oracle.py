@@ -1,9 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 from ..utils import match_regexps
 from ..abcs.database_types import (
     Decimal,
     Float,
+    StringType,
     Text,
     DbPath,
     TemporalType,
@@ -67,6 +68,9 @@ class Mixin_NormalizeValue(AbstractMixin_NormalizeValue):
             format_str += "0." + "9" * (coltype.precision - 1) + "0"
         return f"to_char({value}, '{format_str}')"
 
+    def normalize_string(self, value: str, coltype: StringType) -> str:
+        # why did we have to add this? Makes varchar cols with emojis compat with redshift
+        return f"cast(CONVERT({value}, 'AL32UTF8') as varchar(1024))"
 
 class Mixin_Schema(AbstractMixin_Schema):
     def list_tables(self, table_schema: str, like: Compilable = None) -> Compilable:
