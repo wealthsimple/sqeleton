@@ -22,7 +22,13 @@ class Mixin_NormalizeValue(Mixin_NormalizeValue):
         if coltype.rounds:
             timestamp = f"{value}::timestamp(6)"
             # Get seconds since epoch. Redshift doesn't support milli- or micro-seconds.
-            secs = f"timestamp 'epoch' + round(extract(epoch from {timestamp})::decimal(38)"
+            # NOTE: V2: Change to date_part is to support future dates where extract(epoch..) fails
+            #   due to an overflow error (since it seems epoch must be 32-bit in Redshift)
+            # secs = f"timestamp 'epoch' + round(date_part(epoch, {timestamp})::decimal(38)" # V2
+
+            # NOTE: V3 - change to TRUNC instead of ::decimal(38) to prevent rounding. This matches
+            #         the behavior in Oracle at least. Unsure about Postgres.
+            secs = f"timestamp 'epoch' + round(TRUNC(date_part(epoch, {timestamp}))" # V3
             # Get the milliseconds from timestamp.
             ms = f"extract(ms from {timestamp})"
             # Get the microseconds from timestamp, without the milliseconds!
