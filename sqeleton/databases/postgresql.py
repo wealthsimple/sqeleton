@@ -70,6 +70,7 @@ class PostgresqlDialect(BaseDialect, Mixin_Schema):
         "integer": Integer,
         "numeric": Decimal,
         "bigint": Integer,
+        "smallint": Integer,
         # Text
         "character": Text,
         "character varying": Text,
