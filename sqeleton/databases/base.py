@@ -242,7 +242,8 @@ class BaseDialect(AbstractDialect):
 
         elif issubclass(cls, Decimal):
             if numeric_scale is None:
-                numeric_scale = 0  # Needed for Oracle.
+                # in Oracle, if scale is null values are allowed ANY scale. Set to common maximum among databases
+                numeric_scale = 18
             return cls(precision=numeric_scale)
 
         elif issubclass(cls, Float):
