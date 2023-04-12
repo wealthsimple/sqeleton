@@ -1,3 +1,5 @@
+from typing import List
+from ..utils import match_regexps
 from ..abcs.database_types import (
     DbPath,
     Timestamp,
@@ -13,7 +15,7 @@ from ..abcs.database_types import (
     Date,
 )
 from ..abcs.mixins import AbstractMixin_MD5, AbstractMixin_NormalizeValue
-from .base import BaseDialect, ThreadedDatabase, import_helper, ConnectError, Mixin_Schema
+from .base import BaseDialect, ThreadedDatabase, import_helper, ConnectError, Mixin_Schema, ColType
 from .base import MD5_HEXDIGITS, CHECKSUM_HEXDIGITS, _CHECKSUM_BITSIZE, TIMESTAMP_PRECISION_POS, Mixin_RandomSample
 
 SESSION_TIME_ZONE = None  # Changed by the tests
@@ -101,6 +103,23 @@ class PostgresqlDialect(BaseDialect, Mixin_Schema):
     def set_timeout(self, timeout: int) -> str:
         return f"SET statement_timeout = {timeout * 1000}"
 
+    def parse_type(
+        self,
+        table_path: DbPath,
+        col_name: str,
+        type_repr: str,
+        datetime_precision: int = None,
+        numeric_precision: int = None,
+        numeric_scale: int = None,
+    ) -> ColType:
+        string_regexps = {
+            r"character varying\((\d+)\)": Text,
+        }
+        for m, n_cls in match_regexps(string_regexps, type_repr):
+            return n_cls()
+
+        return super().parse_type(table_path, col_name, type_repr, datetime_precision, numeric_precision)
+    
 
 class PostgreSQL(ThreadedDatabase):
     dialect = PostgresqlDialect()
