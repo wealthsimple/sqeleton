@@ -120,6 +120,9 @@ class PostgresqlDialect(BaseDialect, Mixin_Schema):
 
         return super().parse_type(table_path, col_name, type_repr, datetime_precision, numeric_precision)
     
+    def concat_with_sep(self, items: List[str], sep: str) -> str:
+        return f"concat_ws('{sep}', {', '.join(items)})"
+
 
 class PostgreSQL(ThreadedDatabase):
     dialect = PostgresqlDialect()
