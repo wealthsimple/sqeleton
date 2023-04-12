@@ -97,6 +97,9 @@ class PostgresqlDialect(BaseDialect, Mixin_Schema):
 
     def current_timestamp(self) -> str:
         return "current_timestamp"
+    
+    def set_timeout(self, timeout: int) -> str:
+        return f"SET statement_timeout = {timeout * 1000}"
 
 
 class PostgreSQL(ThreadedDatabase):
@@ -161,3 +164,8 @@ class PostgreSQL(ThreadedDatabase):
         raise ValueError(
             f"{self.name}: Bad table path for {self}: '{'.'.join(path)}'. Expected format: table, schema.table, or database.schema.table"
         )
+
+    def set_query_timeout(self, timeout: int) -> None:
+        if self.query_timeout != timeout:
+            self.query_timeout = timeout
+            self.query(self.dialect.set_timeout(self.query_timeout))

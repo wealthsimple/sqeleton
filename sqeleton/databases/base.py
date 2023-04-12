@@ -539,6 +539,7 @@ class ThreadedDatabase(Database):
 
     Used for database connectors that do not support sharing their connection between different threads.
     """
+    query_timeout = None
 
     def __init__(self, thread_count=1):
         self._init_error = None
@@ -574,6 +575,9 @@ class ThreadedDatabase(Database):
     @property
     def is_autocommit(self) -> bool:
         return False
+    
+    def set_query_timeout(self, timeout: int) -> None:
+        logging.warn('Query timeout is not yet supported for this DB')
 
 
 CHECKSUM_HEXDIGITS = 15  # Must be 15 or lower, otherwise SUM() overflows
