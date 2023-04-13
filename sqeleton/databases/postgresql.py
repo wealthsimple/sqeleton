@@ -123,6 +123,11 @@ class PostgresqlDialect(BaseDialect, Mixin_Schema):
     def concat_with_sep(self, items: List[str], sep: str) -> str:
         return f"concat_ws('{sep}', {', '.join(items)})"
 
+    def type_repr(self, t) -> str:
+        if isinstance(t, TimestampTZ):
+            return f"timestamp ({t.precision}) with time zone"
+        return super().type_repr(t)
+
 
 class PostgreSQL(ThreadedDatabase):
     dialect = PostgresqlDialect()

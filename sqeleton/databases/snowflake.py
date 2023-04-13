@@ -11,6 +11,7 @@ from ..abcs.database_types import (
     TemporalType,
     DbPath,
     Boolean,
+    Date,
 )
 from ..abcs.mixins import (
     AbstractMixin_MD5,
@@ -48,9 +49,9 @@ class Mixin_MD5(AbstractMixin_MD5):
 class Mixin_NormalizeValue(AbstractMixin_NormalizeValue):
     def normalize_timestamp(self, value: str, coltype: TemporalType) -> str:
         if coltype.rounds:
-            timestamp = f"to_timestamp(round(date_part(epoch_nanosecond, {value}::timestamp(9))/1000000000, {coltype.precision}))"
+            timestamp = f"to_timestamp(round(date_part(epoch_nanosecond, convert_timezone('UTC', {value})::timestamp(9))/1000000000, {coltype.precision}))"
         else:
-            timestamp = f"cast({value} as timestamp({coltype.precision}))"
+            timestamp = f"cast(convert_timezone('UTC', {value}) as timestamp({coltype.precision}))"
 
         return f"to_char({timestamp}, 'YYYY-MM-DD HH24:MI:SS.FF6')"
 
@@ -111,6 +112,7 @@ class Dialect(BaseDialect, Mixin_Schema):
         "TIMESTAMP_NTZ": Timestamp,
         "TIMESTAMP_LTZ": Timestamp,
         "TIMESTAMP_TZ": TimestampTZ,
+        "DATE": Date,
         # Numbers
         "NUMBER": Decimal,
         "FLOAT": Float,
@@ -138,6 +140,11 @@ class Dialect(BaseDialect, Mixin_Schema):
 
     def optimizer_hints(self, hints: str) -> str:
         raise NotImplementedError("Optimizer hints not yet implemented in snowflake")
+
+    def type_repr(self, t) -> str:
+        if isinstance(t, TimestampTZ):
+            return f"timestamp_tz({t.precision})"
+        return super().type_repr(t)
 
 
 class Snowflake(Database):
