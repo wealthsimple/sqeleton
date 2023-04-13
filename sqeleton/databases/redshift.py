@@ -1,6 +1,9 @@
 import logging
 from typing import List, Dict
-from ..abcs.database_types import Float, TemporalType, FractionalType, DbPath, TimestampTZ
+
+from sqeleton.utils import join_iter
+from ..abcs.database_types import Float, TemporalType, FractionalType, DbPath
+
 from ..abcs.mixins import AbstractMixin_MD5
 from .postgresql import (
     PostgreSQL,
@@ -60,6 +63,10 @@ class Dialect(PostgresqlDialect):
     def concat(self, items: List[str]) -> str:
         joined_exprs = " || ".join(items)
         return f"({joined_exprs})"
+    
+    def concat_with_sep(self, items: List[str], sep: str) -> str:
+        items = list(join_iter(f"'{sep}'", items))
+        return self.concat(items)
 
     def is_distinct_from(self, a: str, b: str) -> str:
         return f"({a} IS NULL != {b} IS NULL) OR ({a}!={b})"
