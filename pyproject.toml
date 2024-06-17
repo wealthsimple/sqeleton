@@ -31,7 +31,7 @@ rich = "*"
 toml = "^0.10.2"
 mysql-connector-python = {version="8.0.29", optional=true}
 psycopg2 = {version="*", optional=true}
-snowflake-connector-python = {version="^2.7.2", optional=true}
+snowflake-connector-python = {version=">=2.7.2,<4.0.0", optional=true}
 cryptography = {version="*", optional=true}
 trino = {version="^0.314.0", optional=true}
 presto-python-client = {version="*", optional=true}
@@ -47,7 +47,7 @@ unittest-parallel = "*"
 duckdb = "^0.7.0"
 mysql-connector-python = "*"
 psycopg2 = "*"
-snowflake-connector-python = "^2.7.2"
+snowflake-connector-python = "^3.0.2"
 cryptography = "*"
 trino = "^0.314.0"
 presto-python-client = "*"
